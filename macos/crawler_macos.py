@@ -76,6 +76,14 @@ def wechat_clean(url: str) -> str:
     return u
 
 
+def wechat_original(url: str) -> str:
+    """把图片 URL 路径末段的尺寸档位（如 /640）换成 /0，尝试请求服务器原图。
+    微信图床 URL 形如 .../mmbiz_jpg/<HASH>/640?wx_fmt=jpeg，/0 通常返回未压缩原图
+    （字节更大、更清晰）。只替换路径里的纯数字档位，不影响 query 参数。
+    取不到时由调用方回退到原始 URL，保证单张失败不拖垮整篇。"""
+    return re.sub(r"/(\d+)(?=[?#]|$)", "/0", url)
+
+
 def is_solid_or_black(body: bytes) -> bool:
     """用 pillow 判断图片是否「近全黑」或「几乎纯色」(占位/黑图)。无 pillow 时返回 False。"""
     if not CHECK_SOLID:
@@ -144,10 +152,15 @@ def existing_hashes(out_dir: str) -> set:
 
 
 # ============ 微信公众号专用抓取：纯 HTTP 抓 HTML + 正则提取正文图（不依赖浏览器）============
-def _http_get(url: str, referer: str = "", timeout: int = 30):
+def _http_get(url: str, referer: str = "", timeout: int = 45, retries: int = 1):
     """带完整浏览器请求头的 GET，返回 (bytes, content-type)。自动处理 gzip。
-    含 SSL 证书验证失败的降级处理（兼容证书链缺失 / 代理拦截等场景）。"""
+    - 合并连接的超时与读取：单次 timeout 默认 45s（冷抓取 3MB+ 页面可能需要十几秒）
+    - 网络类失败（超时 / 连接中断 / 5xx）自动重试 retries 次
+    - SSL 证书校验失败降级为免校验重试（兼容证书链缺失 / 代理拦截）
+    - 重试采用短退避，避免瞬时抖动导致的连续失败"""
     import ssl
+    import socket
+    import time
     headers = {
         "User-Agent": UA,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jpeg,image/png,*/*;q=0.8",
@@ -158,22 +171,43 @@ def _http_get(url: str, referer: str = "", timeout: int = 30):
     if referer:
         headers["Referer"] = referer
     req = urllib.request.Request(url, headers=headers)
-    resp = None
-    try:
-        resp = urllib.request.urlopen(req, timeout=timeout)
-    except urllib.error.URLError as e:
-        # 证书链缺失 / 代理拦截导致校验失败：降级为不校验证书后重试一次
-        if "CERTIFICATE_VERIFY_FAILED" in str(e) or isinstance(getattr(e, "reason", None), ssl.SSLError):
-            log("  SSL 证书校验失败，已降级为免校验重试:", url[:60])
-            resp = urllib.request.urlopen(req, timeout=timeout,
-                                          context=ssl._create_unverified_context())
-        else:
+
+    def _once(ctx=None):
+        return urllib.request.urlopen(req, timeout=timeout, context=ctx) if ctx else urllib.request.urlopen(req, timeout=timeout)
+
+    for attempt in range(retries + 1):
+        resp = None
+        try:
+            resp = _once()
+        except urllib.error.URLError as e:
+            reason = getattr(e, "reason", None)
+            # 证书链缺失 / 代理拦截：降级免校验重试（不占用网络重试次数）
+            if "CERTIFICATE_VERIFY_FAILED" in str(e) or isinstance(reason, ssl.SSLError):
+                log("  SSL 证书校验失败，已降级为免校验重试:", url[:60])
+                try:
+                    resp = _once(ssl._create_unverified_context())
+                except Exception as e2:
+                    if attempt < retries:
+                        time.sleep(0.6 * (attempt + 1))
+                        continue
+                    raise e2
+            elif attempt < retries:
+                time.sleep(0.6 * (attempt + 1))
+                continue
+            else:
+                raise
+        except (socket.timeout, TimeoutError):
+            if attempt < retries:
+                time.sleep(0.6 * (attempt + 1))
+                continue
             raise
-    with resp:
-        body = resp.read()
-        if resp.headers.get("Content-Encoding", "").lower() == "gzip":
-            body = gzip.decompress(body)
-        return body, resp.headers.get("Content-Type", "")
+        if resp is None:
+            raise RuntimeError("empty response")
+        with resp:
+            body = resp.read()
+            if resp.headers.get("Content-Encoding", "").lower() == "gzip":
+                body = gzip.decompress(body)
+            return body, resp.headers.get("Content-Type", "")
 
 
 def extract_wechat_images(html: str):
@@ -241,7 +275,7 @@ def crawl_wechat(link: str, out_dir: str, min_bytes: int, start_index: int = 1) 
 
     log("抓取微信文章 HTML(纯 HTTP):", link[:90])
     try:
-        html_bytes, _ = _http_get(link, referer="https://mp.weixin.qq.com/", timeout=40)
+        html_bytes, _ = _http_get(link, referer="https://mp.weixin.qq.com/")
     except Exception as e:
         log("❌ 文章页面抓取失败:", e)
         return start_index
@@ -259,12 +293,20 @@ def crawl_wechat(link: str, out_dir: str, min_bytes: int, start_index: int = 1) 
 
     ok = 0
     for u in urls:
-        u = wechat_clean(u)                       # 去 webp/lazy 参数，取原图
-        try:
-            body, ct = _http_get(u, referer="https://mp.weixin.qq.com/", timeout=40)
-        except Exception as e:
-            log("  下载失败:", str(e)[:60], u[-40:])
-            continue
+        u = wechat_clean(u)                       # 去 webp/lazy 参数
+        orig = wechat_original(u)                 # /640 → /0，尝试取真正原图
+        body = ct = None
+        if orig != u:
+            try:
+                body, ct = _http_get(orig, referer="https://mp.weixin.qq.com/")
+            except Exception as e:
+                log("  原图(/0)获取失败，回退压缩版:", str(e)[:50])
+        if body is None:                          # 原图失败 / 无档位：用原始 URL
+            try:
+                body, ct = _http_get(u, referer="https://mp.weixin.qq.com/")
+            except Exception as e:
+                log("  下载失败:", str(e)[:60], u[-40:])
+                continue
         if "webp" in ct or "avif" in ct:
             log("  跳过 webp/avif:", u[-40:])
             continue

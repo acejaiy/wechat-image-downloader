@@ -21,6 +21,10 @@ _probe_out/
 .image_crawler_gui_config.json
 .image_crawler_probe*.txt
 
+# 云同步临时文件
+*.uploading.cfg
+*.baiduyun.*.cfg
+
 # IDE / OS
 .vscode/
 .idea/
