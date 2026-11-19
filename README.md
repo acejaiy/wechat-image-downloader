@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/acejaiy/wechat-image-downloader/releases"><img src="https://img.shields.io/badge/下载-Windows%20exe-blue?style=flat-square" alt="下载 exe"></a>
+  <a href="https://github.com/acejaiy/wechat-image-downloader/releases/latest"><img src="https://img.shields.io/badge/下载-Windows%20exe-blue?style=flat-square" alt="下载 exe"></a>
   <a href="https://github.com/acejaiy/wechat-image-downloader/blob/main/LICENSE"><img src="https://img.shields.io/badge/许可证-MIT-green?style=flat-square" alt="MIT"></a>
   <img src="https://img.shields.io/badge/平台-Windows-orange?style=flat-square" alt="Windows">
 </p>
@@ -40,7 +40,7 @@
 
 ## 快速开始（推荐）
 
-1. 到 [Releases 页面](https://github.com/acejaiy/wechat-image-downloader/releases) 下载 `微信公众号文章图片爬虫.exe`
+1. 到 [Releases 页面](https://github.com/acejaiy/wechat-image-downloader/releases/latest) 下载 `wechat-image-crawler.exe`（即「微信公众号文章图片爬虫」）
 2. 双击运行（首次启动会解压几秒，属正常现象）
 3. 在「保存目录」选择图片要存的位置（默认是桌面的 `爬图` 文件夹）
 4. 把公众号文章链接粘贴到「文章链接」框，一行一个
