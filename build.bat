@@ -1,38 +1,31 @@
 @echo off
-chcp 65001 >nul
-cd /d "%~dp0"
+chcp 936 >nul
 echo ============================================
-echo   å¾®ä¿¡å…¬ä¼—å·åŸå›¾ä¸‹è½½å™¨ - ä¸€é”®æ‰“åŒ…
+echo   ´ò°ü V1.0.2 Tkinter ÔöÇ¿°æÎªµ¥ÎÄ¼ş exe
 echo ============================================
 echo.
 
-where python >nul 2>nul
+where pyinstaller >nul 2>nul
 if errorlevel 1 (
-    echo [é”™è¯¯] æœªæ‰¾åˆ° Pythonï¼Œè¯·å…ˆå®‰è£… Python 3.8+ å¹¶åŠ å…¥ PATHã€‚
-    pause
-    exit /b 1
-)
-
-echo [1/2] å®‰è£…ä¾èµ–...
-python -m pip install -r requirements.txt
-if errorlevel 1 (
-    echo [é”™è¯¯] ä¾èµ–å®‰è£…å¤±è´¥ã€‚
-    pause
-    exit /b 1
+    echo [ÌáÊ¾] Î´ÕÒµ½ pyinstaller£¬ÕıÔÚ°²×°...
+    pip install pyinstaller
 )
 
 echo.
-echo [2/2] æ‰“åŒ… exe...
-python -m PyInstaller --noconfirm --clean --onefile --windowed ^
-  --name "å¾®ä¿¡å…¬ä¼—å·æ–‡ç« å›¾ç‰‡çˆ¬è™«" --collect-all PIL --icon=NONE crawler_gui.py
+echo [1/2] Óï·¨×Ô¼ì...
+python -m py_compile crawler_core.py crawler_gui.py api_server.py
 if errorlevel 1 (
-    echo [é”™è¯¯] æ‰“åŒ…å¤±è´¥ã€‚
+    echo [´íÎó] Óï·¨¼ì²éÎ´Í¨¹ı£¬ÒÑÖĞÖ¹´ò°ü¡£
     pause
     exit /b 1
 )
 
 echo.
+echo [2/2] ¿ªÊ¼ PyInstaller ´ò°ü...
+pyinstaller --onefile --windowed --collect-all PIL --name "Î¢ĞÅ¹«ÖÚºÅÎÄÕÂÍ¼Æ¬ÅÀ³æ V1.0.2" crawler_gui.py
+
+echo.
 echo ============================================
-echo   æ‰“åŒ…å®Œæˆï¼exe åœ¨ dist\å¾®ä¿¡å…¬ä¼—å·æ–‡ç« å›¾ç‰‡çˆ¬è™«.exe
+echo   Íê³É£¡exe Î»ÓÚ dist\ Ä¿Â¼
 echo ============================================
 pause

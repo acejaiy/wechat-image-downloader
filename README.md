@@ -1,4 +1,4 @@
-# 微信公众号原图下载器
+# 微信公众号原图下载器 · V1.0.2
 
 <p align="center">
   <img src="docs/screenshot.png" alt="程序界面" width="720">
@@ -6,7 +6,8 @@
 
 <p align="center">
   <b>零依赖 · 开箱即用 · 微信公众号正文原图一键下载</b><br>
-  Windows 提供单文件 exe，macOS 提供源码，粘贴文章链接即可批量存图。
+  Windows 提供单文件 exe，macOS 提供源码，粘贴文章链接即可批量存图。<br>
+  V1.0.2 新增：文章分组 / 智能整理 / 剪贴板监听 / 本地 HTTP API。
 </p>
 
 <p align="center">
@@ -37,6 +38,26 @@
 - **灵活保存**：可自定义保存目录和子文件夹，图片按序号命名
 - **实时日志**：运行过程实时显示在窗口里，成功/跳过/失败一目了然
 - **可中断**：长任务可随时点「停止」
+
+## V1.0.2 新增功能
+
+在 v1.0.1 单文件 exe 的基础上，专注**批处理**与**减少用户决策**，界面仍是熟悉的 Tkinter，操作依旧傻瓜式：
+
+- **文章分组**：按文章标题自动建文件夹，多篇文章不再混在一起；标题自动清洗 emoji、半角符号、特殊符号，避免文件夹名乱码或无法识别。
+- **智能整理**：下载完自动分「原图 / 封面 / 动图」三类子目录，把过滤能力可视化。
+- **剪贴板监听**（可关）：复制微信文章链接自动填入链接框。仅在本机内存比对链接格式（正则匹配 `mp.weixin.qq.com/s`），只提取微信链接，不落盘、不联网、不上传任何数据。
+- **本地 HTTP API**（可关）：可选开启，仅监听 `127.0.0.1`，供自动化工具调用，不影响小白界面。
+
+### 本地 HTTP API 用法
+
+在「智能选项」勾选「开启本地 HTTP API」后：
+
+```bash
+curl http://127.0.0.1:8765/health
+curl -X POST http://127.0.0.1:8765/crawl \
+  -H "Content-Type: application/json" \
+  -d '{"links":["https://mp.weixin.qq.com/s/..."],"out":"D:/爬图"}'
+```
 
 ## 快速开始（推荐）
 
@@ -86,13 +107,13 @@ python crawler_windows.py --url "https://mp.weixin.qq.com/s/xxxxxx" --out "D:/�
 
 ## 自己打包 exe（Windows）
 
-Windows 下双击 `build.bat`，会自动安装依赖并用 PyInstaller 生成单文件 exe，输出在 `dist/` 目录。
+Windows 下双击 `build.bat`，会自动安装依赖并用 PyInstaller 生成单文件 exe，输出在 `dist/` 目录（名为「微信公众号文章图片爬虫 V1.0.2.exe」）。
 
 ```bash
 pip install -r requirements.txt
-pyinstaller --noconfirm --clean --onefile --windowed \
-  --name "微信公众号文章图片爬虫" --collect-all PIL \
-  --icon=NONE crawler_gui.py
+pyinstaller --noconfirm --onefile --windowed \
+  --name "微信公众号文章图片爬虫 V1.0.2" --collect-all PIL \
+  crawler_gui.py
 ```
 
 ## 工作原理
@@ -114,8 +135,10 @@ pyinstaller --noconfirm --clean --onefile --windowed \
 
 ```
 wechat-image-downloader/
-├── crawler_gui.py          # Windows 图形界面（GUI 外壳）
-├── crawler_windows.py      # Windows 爬虫核心逻辑
+├── crawler_gui.py          # Windows 图形界面（GUI 外壳，V1.0.2 增强版）
+├── crawler_core.py         # V1.0.2 增强核心（提取/下载/分组/分类/清洗），GUI 与 API 共用
+├── crawler_windows.py      # 命令行入口（基础版核心，保留兼容）
+├── api_server.py           # V1.0.2 本地 HTTP API（可选）
 ├── build.bat               # Windows 一键打包脚本
 ├── requirements.txt        # 依赖
 ├── LICENSE                 # MIT 许可证
@@ -143,8 +166,10 @@ A：不支持，本项目专注微信公众号文章。
 ## 合规与免责声明
 
 - 本项目仅用于**个人学习和研究**，请勿用于任何商业用途或大规模抓取。
+- 仅用于下载你有权访问的公开文章内容，遵守著作权与平台条款，勿作商业分发。
 - 使用时请遵守微信公众平台的相关服务条款和 robots 协议，尊重原作者版权。
 - 请勿高频、批量抓取他人内容，避免对相关服务造成影响；由此产生的任何后果由使用者自行承担。
+- 剪贴板监听与本地 API 均为可选功能，纯本机运行；不落盘、不联网、不上传任何数据到任何平台。
 - 作者不对使用本软件造成的任何损失或法律责任负责。
 
 ## 许可证
