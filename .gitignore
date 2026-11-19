@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# 输出图片 / 测试产物
+爬图/
+*_out/
+_probe_out/
+
+# 本地配置（可能含个人路径）
+.image_crawler_gui_config.json
+.image_crawler_probe*.txt
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
