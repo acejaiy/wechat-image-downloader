@@ -5,14 +5,14 @@
 </p>
 
 <p align="center">
-  <b>零依赖 · 开箱即用 · 单文件桌面程序</b><br>
-  粘贴微信公众号文章链接，一键批量下载正文原图到本地。
+  <b>零依赖 · 开箱即用 · 微信公众号正文原图一键下载</b><br>
+  Windows 提供单文件 exe，macOS 提供源码，粘贴文章链接即可批量存图。
 </p>
 
 <p align="center">
   <a href="https://github.com/acejaiy/wechat-image-downloader/releases/latest"><img src="https://img.shields.io/badge/下载-Windows%20exe-blue?style=flat-square" alt="下载 exe"></a>
+  <a href="https://github.com/acejaiy/wechat-image-downloader/tree/main/macos"><img src="https://img.shields.io/badge/macOS-仅源码-lightgrey?style=flat-square" alt="macOS 源码"></a>
   <a href="https://github.com/acejaiy/wechat-image-downloader/blob/main/LICENSE"><img src="https://img.shields.io/badge/许可证-MIT-green?style=flat-square" alt="MIT"></a>
-  <img src="https://img.shields.io/badge/平台-Windows-orange?style=flat-square" alt="Windows">
 </p>
 
 ---
@@ -48,9 +48,22 @@
 
 > 支持形如 `https://mp.weixin.qq.com/s/xxxxxx` 的文章链接。
 
-## 从源码运行
+## macOS 用户
 
-如果你不想用 exe，也可以跑源码：
+macOS 版**只提供源码，不提供打包程序（无 .dmg / .app）**。功能与 Windows 版完全一致，仅路径、字体、运行方式按 macOS 适配。源码在 [`macos/`](macos/) 目录：
+
+```bash
+cd macos
+python3 -m pip install pillow          # 仅用于黑图过滤，可选
+python3 crawler_gui.py                 # 图形界面
+# 或：python3 crawler.py --url "https://mp.weixin.qq.com/s/xxxxxx"
+```
+
+默认保存到 `~/Desktop/爬图`。详见 [macos/README.md](macos/README.md)。若终端提示缺少 tkinter，执行 `brew install python-tk` 或安装 [python.org 官方安装包](https://www.python.org/downloads/macos/)。
+
+## 从源码运行（Windows）
+
+如果你不想用 exe，也可以跑 Windows 版源码：
 
 ```bash
 # 环境：Python 3.8+（已验证 3.14）
@@ -72,7 +85,7 @@ python crawler_windows.py --url "https://mp.weixin.qq.com/s/xxxxxx" --out "D:/�
 | `--out` | 保存目录（默认桌面 `爬图` 文件夹） |
 | `--min-bytes` | 图片最小字节数，小于此值跳过（默认 20000） |
 
-## 自己打包 exe
+## 自己打包 exe（Windows）
 
 Windows 下双击 `build.bat`，会自动安装依赖并用 PyInstaller 生成单文件 exe，输出在 `dist/` 目录。
 
@@ -96,13 +109,17 @@ pyinstaller --noconfirm --clean --onefile --windowed \
 
 ```
 wechat-image-downloader/
-├── crawler_gui.py          # 图形界面（GUI 外壳）
-├── crawler_windows.py      # 爬虫核心逻辑
+├── crawler_gui.py          # Windows 图形界面（GUI 外壳）
+├── crawler_windows.py      # Windows 爬虫核心逻辑
 ├── build.bat               # Windows 一键打包脚本
 ├── requirements.txt        # 依赖
 ├── LICENSE                 # MIT 许可证
-└── docs/
-    └── screenshot.png      # 界面截图
+├── docs/
+│   └── screenshot.png      # 界面截图
+└── macos/                  # macOS 专用版（仅源码，无 dmg）
+    ├── crawler.py          # macOS 爬虫核心逻辑
+    ├── crawler_gui.py      # macOS 图形界面
+    └── README.md           # macOS 运行说明
 ```
 
 ## 常见问题
