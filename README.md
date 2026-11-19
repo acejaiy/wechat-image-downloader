@@ -50,16 +50,15 @@
 
 ## macOS 用户
 
-macOS 版**只提供源码，不提供打包程序（无 .dmg / .app）**。功能与 Windows 版完全一致，仅路径、字体、运行方式按 macOS 适配。源码在 [`macos/`](macos/) 目录：
+macOS 版**只提供命令行源码 `crawler_macos.py`，不提供打包程序（无 .dmg / .app），也没有图形界面**。抓图功能与 Windows 版完全一致，仅路径按 macOS 适配。源码在 [`macos/`](macos/) 目录：
 
 ```bash
 cd macos
 python3 -m pip install pillow          # 仅用于黑图过滤，可选
-python3 crawler_gui.py                 # 图形界面
-# 或：python3 crawler.py --url "https://mp.weixin.qq.com/s/xxxxxx"
+python3 crawler_macos.py --url "https://mp.weixin.qq.com/s/xxxxxx"
 ```
 
-默认保存到 `~/Desktop/爬图`。详见 [macos/README.md](macos/README.md)。若终端提示缺少 tkinter，执行 `brew install python-tk` 或安装 [python.org 官方安装包](https://www.python.org/downloads/macos/)。
+默认保存到 `~/Desktop/爬图`。详见 [macos/README.md](macos/README.md)。无需 tkinter。
 
 ## 从源码运行（Windows）
 
@@ -116,9 +115,8 @@ wechat-image-downloader/
 ├── LICENSE                 # MIT 许可证
 ├── docs/
 │   └── screenshot.png      # 界面截图
-└── macos/                  # macOS 专用版（仅源码，无 dmg）
-    ├── crawler.py          # macOS 爬虫核心逻辑
-    ├── crawler_gui.py      # macOS 图形界面
+└── macos/                  # macOS 专用版（仅命令行源码，无 dmg、无 GUI）
+    ├── crawler_macos.py    # macOS 爬虫核心逻辑
     └── README.md           # macOS 运行说明
 ```
 

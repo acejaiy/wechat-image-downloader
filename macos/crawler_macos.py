@@ -18,8 +18,8 @@
 
 【保存位置】默认存到 ~/Desktop/爬图（见配置区 OUT_DIR）。
 
-【用法 - 直接在代码里贴链接】把链接填进 LINKS 列表，然后运行：python3 crawler.py
-【用法 - 命令行】python3 crawler.py --url <链接> [--out 目录] [--min-bytes 20000]
+【用法 - 直接在代码里贴链接】把链接填进 LINKS 列表，然后运行：python3 crawler_macos.py
+【用法 - 命令行】python3 crawler_macos.py --url <链接> [--out 目录] [--min-bytes 20000]
 """
 import os
 import re
