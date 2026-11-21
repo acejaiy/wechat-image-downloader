@@ -6,13 +6,13 @@
 
 <p align="center">
   <b>零依赖 · 开箱即用 · 微信公众号正文原图一键下载</b><br>
-  Windows 提供单文件 exe，macOS 提供源码，粘贴文章链接即可批量存图。<br>
+  Windows 提供单文件 exe，macOS 提供 DMG 图形界面版，粘贴文章链接即可批量存图。<br>
   V1.0.2 新增：文章分组 / 智能整理 / 剪贴板监听 / 本地 HTTP API。
 </p>
 
 <p align="center">
   <a href="https://github.com/acejaiy/wechat-image-downloader/releases/latest"><img src="https://img.shields.io/badge/下载-Windows%20exe-blue?style=flat-square" alt="下载 exe"></a>
-  <a href="https://github.com/acejaiy/wechat-image-downloader/tree/main/macos"><img src="https://img.shields.io/badge/macOS-仅源码-lightgrey?style=flat-square" alt="macOS 源码"></a>
+  <a href="https://github.com/acejaiy/wechat-image-downloader/tree/main/macos"><img src="https://img.shields.io/badge/macOS-DMG-blue?style=flat-square" alt="macOS DMG"></a>
   <a href="https://github.com/acejaiy/wechat-image-downloader/blob/main/LICENSE"><img src="https://img.shields.io/badge/许可证-MIT-green?style=flat-square" alt="MIT"></a>
 </p>
 
@@ -71,15 +71,13 @@ curl -X POST http://127.0.0.1:8765/crawl \
 
 ## macOS 用户
 
-macOS 版**只提供命令行源码 `crawler_macos.py`，不提供打包程序（无 .dmg / .app），也没有图形界面**。抓图功能与 Windows 版完全一致，仅路径按 macOS 适配。源码在 [`macos/`](macos/) 目录：
+macOS 版提供 **DMG 安装包（图形界面）**，双击即用，无需安装 Python。下载 [`macos/`](macos/) 目录下的 `wechat-image-downloader-macos-v2.0.0.dmg`，把 App 拖进应用程序即可。
 
-```bash
-cd macos
-python3 -m pip install pillow          # 仅用于黑图过滤，可选
-python3 crawler_macos.py --url "https://mp.weixin.qq.com/s/xxxxxx"
-```
+- 内置 Python 3.13 / Pillow / Tk，arm64，macOS 11.0+
+- 双击弹出窗口，粘贴链接、点「开始下载」，日志实时显示
+- 默认保存到 `~/Desktop/爬图`
 
-默认保存到 `~/Desktop/爬图`。详见 [macos/README.md](macos/README.md)。无需 tkinter。
+想从源码自行构建（py2app + Xcode）或了解已知问题，详见 [macos/README.md](macos/README.md)。
 
 ## 从源码运行（Windows）
 
@@ -144,9 +142,14 @@ wechat-image-downloader/
 ├── LICENSE                 # MIT 许可证
 ├── docs/
 │   └── screenshot.png      # 界面截图
-└── macos/                  # macOS 专用版（仅命令行源码，无 dmg、无 GUI）
+└── macos/                  # macOS 专用版（DMG 图形界面 + 构建工程）
     ├── crawler_macos.py    # macOS 爬虫核心逻辑
-    └── README.md           # macOS 运行说明
+    ├── crawler_gui.py      # Tkinter 图形界面
+    ├── setup.py            # py2app 打包配置
+    ├── build_dmg.sh        # 一键构建脚本
+    ├── CrawlerDMG.xcodeproj/  # Xcode 工程
+    ├── wechat-image-downloader-macos-v2.0.0.dmg  # DMG 安装包
+    └── README.md           # macOS 使用与构建说明
 ```
 
 ## 常见问题

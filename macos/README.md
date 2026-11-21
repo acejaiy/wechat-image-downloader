@@ -1,55 +1,56 @@
-# 微信公众号原图下载器 · macOS 版（源码）
+# 微信公众号原图下载器 · macOS 版
 
-这是 macOS 专用版，**只提供命令行源码 `crawler_macos.py`，不提供打包程序（无 .dmg / .app），也没有图形界面**。抓图功能与仓库根目录的 Windows 版完全一致（纯微信公众号正文原图下载），仅针对 macOS 做了路径与运行方式适配。
+macOS 版从 v2.0.0 起提供**图形界面 App 与 DMG 安装包**，双击即可使用，无需在 Mac 上安装 Python。抓图功能与仓库根目录的 Windows 版一致（纯微信公众号正文原图下载）。
 
-## 运行环境
+## 下载与安装
 
-- macOS 10.15 及以上
-- Python 3.8+（macOS 通常自带 Python 3，或用 Homebrew 安装）
-- 无需 tkinter（本版为纯命令行，不依赖图形界面）
+1. 下载本目录下的 `wechat-image-downloader-macos-v2.0.0.dmg`。
+2. 双击挂载，把「微信爬图.app」拖进「应用程序」文件夹。
+3. 首次打开若被 Gatekeeper 拦截，到 **系统设置 → 隐私与安全性 → 仍要打开**。
 
-## 运行
+App 内置 Python 3.13、Pillow 与 Tk，arm64 架构，macOS 11.0+，ad-hoc 签名。
 
-在 `macos/` 目录下打开终端：
+## 使用
+
+1. 双击打开 App，会弹出窗口。
+2. 在「微信文章链接」框粘贴公众号文章链接，每行一条（已预填示例）。
+3. 可点「选择…」更改保存目录（默认 `~/Desktop/爬图`）。
+4. 点「开始下载」，日志实时显示在窗口下方。
+5. 点「打开保存目录」查看下载好的图片。
+
+重复运行会按图片内容 MD5 自动去重，不会累积副本。仅支持微信公众号文章链接（`mp.weixin.qq.com/s/...`）。
+
+## 源码与自行构建
+
+本目录包含完整构建工程：
+
+| 文件 | 说明 |
+| --- | --- |
+| `crawler_macos.py` | 抓图核心逻辑（纯标准库 + 可选 Pillow） |
+| `crawler_gui.py` | Tkinter 图形界面前端，复用核心逻辑 |
+| `setup.py` | py2app 打包配置 |
+| `build_dmg.sh` | 一键构建脚本（py2app → 补齐 Tcl/Tk 运行时 → hdiutil 生成 DMG） |
+| `CrawlerDMG.xcodeproj` | Xcode 工程，Aggregate Target「Build DMG」调用 `build_dmg.sh` |
+
+用 Xcode 构建：
 
 ```bash
-cd macos
-
-# 安装依赖（仅黑图过滤需要；不装也能跑，只是不过滤纯色占位图）
-python3 -m pip install pillow
-
-# 命令行运行
-python3 crawler_macos.py --url "https://mp.weixin.qq.com/s/xxxxxx" --out "~/Desktop/爬图"
+xcodebuild -project CrawlerDMG.xcodeproj -target "Build DMG" -configuration Release
 ```
 
-也可以直接把链接填进脚本顶部的 `LINKS` 列表，然后运行 `python3 crawler_macos.py`。
+或直接跑脚本：
 
-命令行参数：
+```bash
+./build_dmg.sh
+```
 
-| 参数 | 说明 |
-| --- | --- |
-| `--url` | 单篇文章链接（不填则用 `crawler_macos.py` 里 `LINKS` 列表） |
-| `--out` | 保存目录（默认 `~/Desktop/爬图`） |
-| `--min-bytes` | 图片最小字节数，小于此值跳过（默认 20000） |
+产物在 `output/微信爬图.dmg`。
 
-## 与 Windows 版的区别
+### 构建依赖与已知问题
 
-| 项目 | Windows 版 | macOS 版 |
-| --- | --- | --- |
-| 交付形式 | 单文件 exe（Release 下载）+ 图形界面 | 仅命令行源码，自行用 `python3` 运行 |
-| 爬虫文件名 | `crawler_windows.py` | `crawler_macos.py` |
-| 默认保存目录 | `C:\Users\<用户名>\Desktop\爬图` | `~/Desktop/爬图` |
-| 界面字体 | 微软雅黑 / Consolas | 无（无图形界面） |
-
-抓图核心逻辑与过滤规则完全一致。
-
-## 常见问题
-
-**Q：SSL 证书报错？**
-A：脚本已内置证书校验失败后的免校验重试，一般可自动处理。
-
-**Q：支持抖音、小红书吗？**
-A：不支持，本项目专注微信公众号文章。
+- 需要 Python 3.13 + `py2app`、`Pillow`（`pip install py2app pillow`）。
+- **Python 3.13** 中 `zlib` 是冻结内置模块，没有 `__file__`。py2app 0.28.10 在 `build_app.py:2443` 直接 `copy_file(zlib.__file__)` 会报 `AttributeError`。需修补为仅当 `__file__` 存在且文件存在时才复制；升级 py2app 后如仍报错，检查该处。
+- py2app 不会自动打包 Tkinter 运行时。`build_dmg.sh` 会从 Python 的 lib 目录复制 `libtcl9.0.dylib`、`libtcl9tk9.0.dylib` 到 `Contents/Resources/lib/`，并带上 `tcl9.0/`、`tk9.0/` 数据目录，然后重新 ad-hoc 签名。缺少这些会导致启动时报 "Launch error"。
 
 ## 合规声明
 
